@@ -526,7 +526,7 @@ public class Day14 {
                 "p=2,4 v=2,-3\n" +
                 "p=9,5 v=-3,-3";
 
-        String[] split = intput1.split("\\n");
+        String[] split = intput.split("\\n");
         List<Robot> robots = new ArrayList<>();
         for (String s : split) {
             Pattern pattern = Pattern.compile("-?\\d+");
@@ -549,9 +549,8 @@ public class Day14 {
     }
 
     public static int solutionForPartOne(List<Robot> robots) {
-        int res = 0;
-        int w = 11;
-        int h = 7;
+        int w = 101;
+        int h = 103;
 //        int[][] map = new int[103][101];
         int[][] map = new int[h][w];
 
@@ -588,8 +587,29 @@ public class Day14 {
         }
 
 
+        int a = 0;
+        int b = 0;
+        int c = 0;
+        int d = 0;
+        for (int y = 0; y < map.length; y++) {
+            for (int x = 0; x < map[y].length; x++) {
+                if (y < h / 2 && x < w / 2) {
+                    a += map[y][x];
+                }
+                if (y < h / 2 && x > w / 2) {
+                    b += map[y][x];
+                }
+                if (y > h / 2 && x < w / 2) {
+                    c += map[y][x];
+                }
+                if (y > h / 2 && x > w / 2) {
+                    d += map[y][x];
+                }
+            }
+        }
 
-        return res;
+
+        return a*b*c*d;
     }
 
     static class Robot {
