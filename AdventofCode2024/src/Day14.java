@@ -545,11 +545,19 @@ public class Day14 {
         }
 
 
-        int answer1 = solutionForPartOne(robots);
+        int answer1 = solutionForPartOne(deepCopyRobots(robots));
         System.out.println(answer1);
 
-        int answer2 = solutionForPartTwo(robots);
+        int answer2 = solutionForPartTwo(deepCopyRobots(robots));
         System.out.println(answer2);
+    }
+
+    private static List<Robot> deepCopyRobots(List<Robot> robots) {
+        List<Robot> copy = new ArrayList<>();
+        for (Robot robot : robots) {
+            copy.add(new Robot(robot.getPx(), robot.getPy(), robot.getVx(), robot.getVy()));
+        }
+        return copy;
     }
 
     public static int solutionForPartOne(List<Robot> robots) {
