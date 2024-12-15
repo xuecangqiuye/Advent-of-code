@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -546,6 +547,9 @@ public class Day14 {
 
         int answer1 = solutionForPartOne(robots);
         System.out.println(answer1);
+
+        int answer2 = solutionForPartTwo(robots);
+        System.out.println(answer2);
     }
 
     public static int solutionForPartOne(List<Robot> robots) {
@@ -609,7 +613,90 @@ public class Day14 {
         }
 
 
-        return a*b*c*d;
+        return a * b * c * d;
+    }
+
+    public static int solutionForPartTwo(List<Robot> robots) {
+        int w = 101;
+        int h = 103;
+        int[][] map = new int[h][w];
+
+
+        for (Robot robot : robots) {
+            int px = robot.getPx();
+            int py = robot.getPy();
+            map[py][px] += 1;
+        }
+
+
+        int sec = 0;
+        while (true) {
+            sec++;
+            for (Robot robot : robots) {
+                int px = robot.getPx();
+                int py = robot.getPy();
+                map[py][px] -= 1;
+
+                px = px + robot.getVx();
+                py = py + robot.getVy();
+                if (px < 0) {
+                    px = w + px;
+                } else if (px >= w) {
+                    px = px - w;
+                }
+                if (py < 0) {
+                    py = h + py;
+                } else if (py >= h) {
+                    py = py - h;
+                }
+                robot.setPx(px);
+                robot.setPy(py);
+                map[py][px] += 1;
+            }
+            if (isTree(map)) {
+                for (int[] ints : map) {
+                    System.out.println(Arrays.toString(ints));
+                }
+                return sec;
+            }
+        }
+    }
+
+    public static boolean isTree(int[][] map) {
+        boolean isTree = false;
+        int w = 17;
+        int h = 13;
+
+        double rate = 0.7;
+        int[][] reginMap = new int[map.length / h][map[0].length / w];
+
+
+        for (int i = 0; i < map.length / h; i++) {
+            for (int j = 0; j < map[0].length / w; j++) {
+
+                for (int y = i * h; y < Math.min(i + (i + 1) * h, map.length); y++) {
+                    for (int x = j * w; x < Math.min(j + (j + 1) * w, map[0].length); x++) {
+                        if (map[y][x] >= 1) {
+                            reginMap[i][j] += map[y][x];
+                        }
+                    }
+                }
+            }
+        }
+
+        int count = 0;
+        for (int[] block : reginMap) {
+            for (double i : block) {
+                if (i / (w * h) >= rate) {
+                    count++;
+                }
+            }
+        }
+        if (count >= 1) {
+            isTree = true;
+        }
+
+        return isTree;
     }
 
     static class Robot {
