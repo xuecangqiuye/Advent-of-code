@@ -343,6 +343,9 @@ public class Day24 {
         long answer1 = solutionForPartOne(map, map1);
         System.out.println(answer1);
 
+//        List<String> strings = solutionForPartTwo();
+//        System.out.println(strings);
+
     }
 
     static Map<String, Integer> MAP;
@@ -419,5 +422,50 @@ public class Day24 {
         return cal(a, b, m);
     }
 
+//    public static List<String> solutionForPartTwo() {
+//        List<String> res = new ArrayList<>();
+//
+//        WiredGates.forEach((k, v) -> {
+//            String[] split = v.split(" ");
+//            String a = split[0];
+//            String m = split[1];
+//            if (a.startsWith("x") && !k.startsWith("z")) {
+//                String num = a.split("x")[1];
+//                String key = "z".concat(num);
+//                if (WiredGates.containsKey(key)) {
+//                    String s = WiredGates.get(key);
+//                    String[] split1 = s.split(" ");
+//                    if ((Objects.equals(split1[0], k) || Objects.equals(split1[2], k)) && Objects.equals(split1[1], m)) {
+//                        res.add(k);
+//                        res.add(key);
+//                    }
+//                }
+//            }
+//        });
+//        return res;
+//    }
 
+
+//    public static List<String> solutionForPartTwo() {
+//        List<String> res = new ArrayList<>();
+//
+//        WiredGates.forEach((key, val) -> {
+//            String[] split = val.split(" ");
+//            String a = split[0];
+//            String m = split[1];
+//            if (a.startsWith("x") && !key.startsWith("z")) {
+//                String num = a.split("x")[1];
+//                String k = "z".concat(num);
+//                if (WiredGates.containsKey(k)) {
+//                    String s = WiredGates.get(k);
+//                    String[] split1 = s.split(" ");
+//                    if ((Objects.equals(split1[0], key) || Objects.equals(split1[2], key)) && Objects.equals(split1[1], m)) {
+//                        res.add(k);
+//                        res.add(key);
+//                    }
+//                }
+//            }
+//        });
+//        return res;
+//    }
 }
