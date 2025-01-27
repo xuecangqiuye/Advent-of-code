@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class Day6 {
 
@@ -161,8 +158,8 @@ public class Day6 {
         int step = solutionForPartOne(map);
         System.out.println(step);
 
-//        int answer2 = solutionForPartTwo(map1);
-//        System.out.println(answer2);
+        int answer2 = solutionForPartTwo(map1);
+        System.out.println(answer2);
     }
 
     static char GUARD = '^';
@@ -225,6 +222,8 @@ public class Day6 {
 
     static int RES2 = 0;
     static char FAKE_WALL = '@';
+    static int INIT_X;
+    static int INIT_Y;
 
     public static int solutionForPartTwo(Character[][] map) {
         int x = 0;
@@ -238,59 +237,28 @@ public class Day6 {
             }
         }
         map[y][x] = MARK;
-        List<List<List<Integer>>> dirMap = new ArrayList<>(LENGTH_Y);
-        for (int i = 0; i < LENGTH_Y; i++) {
-            List<List<Integer>> innerList = new ArrayList<>(LENGTH_X);
-            for (int j = 0; j < LENGTH_X; j++) {
-                innerList.add(new ArrayList<>());
-            }
-            dirMap.add(innerList);
-        }
+        INIT_X = x;
+        INIT_Y = y;
 
-        List<List<List<Integer>>> aMap = new ArrayList<>(LENGTH_Y);
-        for (int i = 0; i < LENGTH_Y; i++) {
-            List<List<Integer>> innerList = new ArrayList<>(LENGTH_X);
-            for (int j = 0; j < LENGTH_X; j++) {
-                innerList.add(new ArrayList<>());
-            }
-            aMap.add(innerList);
-        }
-
-        dfs2(map, dirMap, aMap, x, y, 0);
-//        doWhile(map, x, y, 0);
-        return RES2;
+//        dfs2(map, x, y, 0);
+        return dfs3(map);
+//        return RES2;
     }
 
     static Character[][] copyArr;
-    public static void dfs2(Character[][] map, List<List<List<Integer>>> dirMap, List<List<List<Integer>>> aMap, int x, int y, int dir) {
+    static int COUNT = 0;
+    static int LIMIT = 10000;
+    static boolean USE_FAKE_WALL = false;
+
+
+    public static void dfs2(Character[][] map, int x, int y, int dir) {
         int[] dirArr = DIR[dir];
         int nextX = x + dirArr[0];
         int nextY = y + dirArr[1];
-        dirMap.get(y).get(x).add(dir);
-        int nextDir = (dir + 1) > 3 ? 0 : dir + 1;
+        int nextDir = (dir + 1) % 4;
 
-        if (nextY >= LENGTH_Y || nextY < 0 || nextX >= LENGTH_X || nextX < 0) {
-            return;
-        }
-
-        if (Objects.equals(map[nextY][nextX], WALL)) {
-            dfs2(map, dirMap, aMap, x, y, nextDir);
-        } else {
-            copyArr = Day16.deepCopyArray(map);
-            copyArr[nextY][nextX] = FAKE_WALL;
-            dfsLoop(copyArr, dirMap, aMap, x, y, nextDir);
-
-            map[nextY][nextX] = MARK;
-            dfs2(map, dirMap, aMap, nextX, nextY, dir);
-        }
-    }
-
-    public static void dfsLoop(Character[][] map, List<List<List<Integer>>> dirMap, List<List<List<Integer>>> aMap, int x, int y, int dir) {
-        int[] dirArr = DIR[dir];
-        int nextX = x + dirArr[0];
-        int nextY = y + dirArr[1];
-        int nextDir = (dir + 1) > 3 ? 0 : dir + 1;
-        if (aMap.get(y).get(x).contains(dir) && map[y][x] == 'A') {
+        if (COUNT > LIMIT) {
+            RES2++;
             return;
         }
 
@@ -299,93 +267,70 @@ public class Day6 {
         }
 
         if (Objects.equals(map[nextY][nextX], WALL) || Objects.equals(map[nextY][nextX], FAKE_WALL)) {
-            dfsLoop(map, dirMap, aMap, x, y, nextDir);
+            dfs2(map, x, y, nextDir);
         } else {
-            if ((Objects.equals(map[nextY][nextX], MARK) && dirMap.get(nextY).get(nextX).contains(dir)) || (Objects.equals(map[nextY][nextX], 'A') && aMap.get(nextY).get(nextX).contains(dir)))
-            {
-                RES2++;
-                System.out.println(RES2);
-                return;
+            if (!USE_FAKE_WALL) {
+                USE_FAKE_WALL = true;
+                copyArr = Day16.deepCopyArray(map);
+                copyArr[nextY][nextX] = FAKE_WALL;
+
+                dfs2(copyArr, x, y, nextDir);
+
+                USE_FAKE_WALL = false;
+                COUNT = 0;
+            } else {
+                COUNT++;
             }
-            map[nextY][nextX] = 'A';
-            aMap.get(y).get(x).add(dir);
-            dfsLoop(map, dirMap, aMap, nextX, nextY, dir);
+            map[nextY][nextX] = MARK;
+            dfs2(map, nextX, nextY, dir);
         }
     }
 
-    public static void doWhile(char[][] map, int x, int y, int dir) {
-
-        int[] dirArr;
-        int nextX;
-        int nextY;
-        int nextDir;
-
-        List<List<List<Integer>>> dirMap = new ArrayList<>(LENGTH_Y);
+    public static int dfs3(Character[][] map) {
+        int loops = 0;
         for (int i = 0; i < LENGTH_Y; i++) {
-            List<List<Integer>> innerList = new ArrayList<>(LENGTH_X);
             for (int j = 0; j < LENGTH_X; j++) {
-                innerList.add(new ArrayList<>());
-            }
-            dirMap.add(innerList);
-        }
+                if (map[i][j] != '.') {
+                    continue;
+                }
 
-        List<List<List<Integer>>> aMap = new ArrayList<>(LENGTH_Y);
-        for (int i = 0; i < LENGTH_Y; i++) {
-            List<List<Integer>> innerList = new ArrayList<>(LENGTH_X);
-            for (int j = 0; j < LENGTH_X; j++) {
-                innerList.add(new ArrayList<>());
-            }
-            aMap.add(innerList);
-        }
+                // clone the map and set the current cell to an obstacle
+                Character[][] copyMap = Day16.deepCopyArray(map);
+                copyMap[i][j] = '@';
 
-        while (true) {
-            dirMap.get(y).get(x).add(dir);
-            dirArr = DIR[dir];
-            nextX = x + dirArr[0];
-            nextY = y + dirArr[1];
-            nextDir = (dir + 1) > 3 ? 0 : dir + 1;
+                // run the map until we run off the map or hit our step limit
+                int steps = 0;
+                int dir = 0;
+                int x = INIT_X;
+                int y = INIT_Y;
 
-            if (nextY >= LENGTH_Y || nextY < 0 || nextX >= LENGTH_X || nextX < 0) {
-                break;
-            }
+                while (steps < LIMIT) {
+                    int[] dirArr = DIR[dir];
+                    int nextX = x + dirArr[0];
+                    int nextY = y + dirArr[1];
 
-            if (Objects.equals(map[nextY][nextX], WALL)) {
-                dir = nextDir;
-            } else {
-                map[nextY][nextX] = FAKE_WALL;
-                int obsDir = nextDir;
-                int obsX = x;
-                int obsY = y;
-                while (true) {
-                    int[] obsDirArr = DIR[obsDir];
-                    int obsNextX = obsX + obsDirArr[0];
-                    int obsNextY = obsY + obsDirArr[1];
-                    int obsNextDir = (obsDir + 1) > 3 ? 0 : obsDir + 1;
-
-                    if (obsNextY >= LENGTH_Y || obsNextY < 0 || obsNextX >= LENGTH_X || obsNextX < 0) {
+                    if (nextY >= LENGTH_Y || nextY < 0 || nextX >= LENGTH_X || nextX < 0) {
                         break;
                     }
-
-                    if (Objects.equals(map[obsNextY][obsNextX], WALL) || Objects.equals(map[obsNextY][obsNextX], FAKE_WALL)) {
-                        obsDir = obsNextDir;
+                    if (Objects.equals(copyMap[nextY][nextX], WALL) || Objects.equals(copyMap[nextY][nextX], FAKE_WALL)) {
+                        dir = (dir + 1) > 3 ? 0 : dir + 1;
+                        continue;
                     } else {
-                        if (Objects.equals(map[obsNextY][obsNextX], MARK) && dirMap.get(obsNextY).get(obsNextX).contains(obsDir)) {
-                            RES2++;
-                            System.out.println(RES2);
-                            break;
-                        }
-                        if (map[obsNextY][obsNextX] != MARK) {
-                            map[obsNextY][obsNextX] = 'A';
-                        }
-                        obsX = obsNextX;
-                        obsY = obsNextY;
+                        x = nextX;
+                        y = nextY;
                     }
+                    steps++;
                 }
-                map[nextY][nextX] = MARK;
-                x = nextX;
-                y = nextY;
+
+                // if we hit our step limit, assume we've found a loop
+                if (steps >= LIMIT) {
+                    loops++;
+                }
+
             }
         }
+        return loops;
     }
+
 }
 
