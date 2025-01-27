@@ -313,7 +313,7 @@ public class Day6 {
                         break;
                     }
                     if (Objects.equals(copyMap[nextY][nextX], WALL) || Objects.equals(copyMap[nextY][nextX], FAKE_WALL)) {
-                        dir = (dir + 1) > 3 ? 0 : dir + 1;
+                        dir = (dir + 1) % 4;
                         continue;
                     } else {
                         x = nextX;
@@ -333,4 +333,6 @@ public class Day6 {
     }
 
 }
+
+// https://observablehq.com/collection/@jwolondon/xadvent-of-code-2024
 
