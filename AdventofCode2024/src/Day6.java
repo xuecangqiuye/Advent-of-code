@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Day6 {
 
@@ -175,7 +176,6 @@ public class Day6 {
     static char MARK = 'X';
 
     public static int solutionForPartOne(char[][] map) {
-        int res = 0;
         int x = 0;
         int y = 0;
         LENGTH_Y = map.length;
@@ -190,16 +190,10 @@ public class Day6 {
         }
         map[y][x] = MARK;
         dfs(map, x, y, 0);
-
-        for (char[] chars : map) {
-            for (char a : chars) {
-                if (Objects.equals(a, MARK)) {
-                    res++;
-                }
-            }
-        }
-        return res;
+        return RES;
     }
+
+    static int RES = 0;
 
     public static void dfs(char[][] map, int x, int y, int dir) {
         int[] dirArr = DIR[dir];
@@ -208,19 +202,22 @@ public class Day6 {
 
 
         if (nextY >= LENGTH_Y || nextY < 0 || nextX >= LENGTH_X || nextX < 0) {
+            RES++;
             return;
         }
         if (Objects.equals(map[nextY][nextX], WALL)) {
             dir = (dir + 1) > 3 ? 0 : dir + 1;
             dfs(map, x, y, dir);
         } else {
-            map[nextY][nextX] = MARK;
+            if (!Objects.equals(map[nextY][nextX], MARK)) {
+                RES++;
+                map[nextY][nextX] = MARK;
+            }
             dfs(map, nextX, nextY, dir);
         }
     }
 
 
-    static int RES2 = 0;
     static char FAKE_WALL = '@';
     static int INIT_X;
     static int INIT_Y;
@@ -234,31 +231,36 @@ public class Day6 {
                     x = j;
                     y = i;
                 }
+                if (map[i][j] == '.') {
+                    map[i][j] = '_';
+                }
+
             }
         }
-        map[y][x] = MARK;
         INIT_X = x;
         INIT_Y = y;
 
-//        dfs2(map, x, y, 0);
-        return dfs3(map);
-//        return RES2;
+
+//        int loop = loop(map);
+//        return loop;
+        Set<String> haveBeen = new HashSet<>();
+        dfs2(map, x, y, 0, false, haveBeen);
+        return OBS_SET.size();
     }
 
-    static Character[][] copyArr;
-    static int COUNT = 0;
     static int LIMIT = 10000;
-    static boolean USE_FAKE_WALL = false;
+    static String OBS_STR = "";
+    static Set<String> OBS_SET = new HashSet<>();
 
 
-    public static void dfs2(Character[][] map, int x, int y, int dir) {
+    public static void dfs2(Character[][] map, int x, int y, int dir, boolean useFakeWall, Set<String> haveBeen) {
         int[] dirArr = DIR[dir];
         int nextX = x + dirArr[0];
         int nextY = y + dirArr[1];
         int nextDir = (dir + 1) % 4;
 
-        if (COUNT > LIMIT) {
-            RES2++;
+        if (haveBeen.contains(x + "," + y + "," + dir)) {
+            OBS_SET.add(OBS_STR);
             return;
         }
 
@@ -267,26 +269,36 @@ public class Day6 {
         }
 
         if (Objects.equals(map[nextY][nextX], WALL) || Objects.equals(map[nextY][nextX], FAKE_WALL)) {
-            dfs2(map, x, y, nextDir);
+            dfs2(map, x, y, nextDir, useFakeWall, haveBeen);
         } else {
-            if (!USE_FAKE_WALL) {
-                USE_FAKE_WALL = true;
-                copyArr = Day16.deepCopyArray(map);
-                copyArr[nextY][nextX] = FAKE_WALL;
+            if (!useFakeWall) {
+                // The obstacle cannot be placed where the guard has already walked, as the obstacle is initially positioned before the guard begins to walk.
+                boolean flag = true;
+                for (String s : haveBeen) {
+                    if (s.startsWith(nextX + "," + nextY)) {
+                        flag = false;
+                        break;
+                    }
+                }
+                if (flag) {
+                    OBS_STR = nextX + "," + nextY;
+                    Character[][] copyMap = Day16.deepCopyArray(map);
+                    copyMap[nextY][nextX] = FAKE_WALL;
+                    Set<String> haveBeenTemp = new HashSet<>(haveBeen);
 
-                dfs2(copyArr, x, y, nextDir);
+                    dfs2(copyMap, x, y, nextDir, true, haveBeenTemp);
 
-                USE_FAKE_WALL = false;
-                COUNT = 0;
-            } else {
-                COUNT++;
+                    OBS_STR = "";
+                }
+
             }
-            map[nextY][nextX] = MARK;
-            dfs2(map, nextX, nextY, dir);
+            map[y][x] = MARK;
+            haveBeen.add(x + "," + y + "," + dir);
+            dfs2(map, nextX, nextY, dir, useFakeWall, haveBeen);
         }
     }
 
-    public static int dfs3(Character[][] map) {
+    public static int loop(Character[][] map) {
         int loops = 0;
         for (int i = 0; i < LENGTH_Y; i++) {
             for (int j = 0; j < LENGTH_X; j++) {
@@ -326,13 +338,70 @@ public class Day6 {
                 if (steps >= LIMIT) {
                     loops++;
                 }
-
             }
         }
         return loops;
     }
 
+
+    static class PointAndDir {
+        private int x;
+        private int y;
+        private int dir;
+
+        public PointAndDir(int x, int y, int dir) {
+            this.x = x;
+            this.y = y;
+            this.dir = dir;
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public void setX(int x) {
+            this.x = x;
+        }
+
+        public int getY() {
+            return y;
+        }
+
+        public void setY(int y) {
+            this.y = y;
+        }
+
+        public int getDir() {
+            return dir;
+        }
+
+        public void setDir(int dir) {
+            this.dir = dir;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) return false;
+            PointAndDir that = (PointAndDir) o;
+            return x == that.x && y == that.y && dir == that.dir;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(x, y, dir);
+        }
+
+        @Override
+        public String toString() {
+            return "PointAndDir{" +
+                    "x=" + x +
+                    ", y=" + y +
+                    ", dir=" + dir +
+                    '}';
+        }
+    }
 }
+
 
 // https://observablehq.com/collection/@jwolondon/xadvent-of-code-2024
 
